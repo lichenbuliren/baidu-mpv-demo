@@ -1,9 +1,10 @@
-/* global BMap, mapv */
+/* global mapv */
 import React from 'react'
+import { QMap, Marker } from '../react-qmap'
 
-export default class BaiduMap extends React.Component {
+export default class QQMap extends React.Component {
   static defaultProps = {
-    id: 'baiduMap',
+    id: 'QMap',
     height: '100%',
     style: {},
     data: [],
@@ -24,8 +25,7 @@ export default class BaiduMap extends React.Component {
   }
 
   componentDidMount () {
-    // this.initMap()
-    this.pointTranslater()
+    this.initMap()
   }
 
   componentWillReceiveProps (nextProps) {
@@ -107,22 +107,22 @@ export default class BaiduMap extends React.Component {
   }
 
   initMap = data => {
-    const { id, center } = this.props
-    if (data.status === 0) {
-      const centerPoint = data.points[0]
-      const marker = new BMap.Marker(centerPoint)
-      this.map = new BMap.Map(id)
-      this.map.enableScrollWheelZoom(true)
-      this.map.addOverlay(marker)
-      this.map.addControl(new BMap.NavigationControl())
-      this.map.centerAndZoom(centerPoint, 16)
-      this.convertorData()
-      console.log(this.map)
-    }
   }
 
   render() {
-    const { id, style } = this.props
-    return <div id={id} style={style}></div>
+    const { id, style, center } = this.props
+    return (
+      <React.Fragment>
+        <div id={id} style={{height: '100vh', width: '100%'}}>
+          <QMap
+            center={center}
+            zoom={16}
+            style={{height: '100%'}}
+          >
+            <Marker position={center}  />
+          </QMap>
+        </div>
+      </React.Fragment>
+    )
   }
 }

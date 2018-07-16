@@ -11,3 +11,11 @@ body {
 #root {
   height: 100%
 }
+
+.anchorBL {
+  display: none
+}
+
+.BMap_cpyCtrl {
+  display: none
+}

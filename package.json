@@ -4,12 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "parcel ./src/index.html --no-cache",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "maptalks": "^0.40.3",
     "mapv": "^2.0.23",
     "react": "^16.4.0",
     "react-bmap": "^1.0.71",
