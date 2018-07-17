@@ -174,7 +174,6 @@ DataSet.prototype.transferCoordinate = function (data, transferFn, fromColumn, t
 
     toColumnName = toColumnName || '_coordinates';
     fromColumn = fromColumn || 'coordinates';
-    debugger
     for (var i = 0; i < data.length; i++) {
 
         var geometry = data[i].geometry;

@@ -1,5 +1,8 @@
-/* global BMap, mapv */
+/* global BMap,  */
 import React from 'react'
+// import maptalks from 'maptalks'
+import * as mapv from 'mapv'
+console.log(mapv);
 
 export default class BaiduMap extends React.Component {
   static defaultProps = {
