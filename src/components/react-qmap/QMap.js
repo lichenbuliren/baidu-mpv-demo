@@ -119,8 +119,12 @@ class QQMap extends BaseComponent {
   render () {
     const { style } = this.props
     return (
-      <div className="qmap-container" style={{height: '100%'}}>
-        <div ref={node => (this.mapNode = node)} className={this.props.className} style={style}>
+      <div className='qmap-container' style={style}>
+        <div
+          ref={node => (this.mapNode = node)}
+          className={this.props.className}
+          style={{height: '100%', width: '100%'}}
+        >
           加载地图中...
           {this.renderChildren()}
           {this.onRender()}

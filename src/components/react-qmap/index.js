@@ -7,6 +7,7 @@ import Circle from './Circle'
 import Polyline from './Polyline'
 import Polygon from './Polygon'
 import Control from './Control'
+import ControlPosition from './ControlPosition'
 import * as utils from './utils'
 import * as config from './constants'
 
@@ -21,5 +22,6 @@ export {
   config,
   Polygon,
   Circle,
-  Control
+  Control,
+  ControlPosition
 }

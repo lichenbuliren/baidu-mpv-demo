@@ -1,6 +1,9 @@
 /* global mapv */
 import React from 'react'
 import { QMap, Marker } from '../react-qmap'
+import QMapVLayer from './Layer'
+import DataSet from './data/DataSet'
+import CanvasLayer from './CanvasLayer'
 
 export default class QQMap extends React.Component {
   static defaultProps = {
@@ -20,48 +23,47 @@ export default class QQMap extends React.Component {
     dataSet: []
   }
   
-  constructor (props) {
-    super(props)
-  }
+  // constructor (props) {
+  //   super(props)
+  // }
 
-  componentDidMount () {
-    this.initMap()
-  }
+  // componentDidMount () {
+  //   this.initMap()
+  // }
 
   componentWillReceiveProps (nextProps) {
-    if (nextProps.data !== this.props.data) this.convertorData()
+    // if (nextProps.data !== this.props.data) this.convertorData()
   }
 
-  pointTranslater = () => {
-    const { center } = this.props
-    const convertor = new BMap.Convertor()
-    const pointArr = []
-    pointArr.push(center)
-    // google 格式转百度地图
-    convertor.translate(pointArr, 3, 5, this.initMap)
-  }
+  // pointTranslater = () => {
+  //   const { center } = this.props
+  //   const convertor = new BMap.Convertor()
+  //   const pointArr = []
+  //   pointArr.push(center)
+  //   // google 格式转百度地图
+  //   convertor.translate(pointArr, 3, 5, this.initMap)
+  // }
 
-  convertorData = () => {
-    const { data } = this.props
-    const sclieLen = 10
-    const allPromise = []
-    let i = 0
-    while (i < data.length) {
-      const curArr = data.slice(i, i + sclieLen)
-      allPromise.push(this.convertor(curArr))
-      i += sclieLen
-    }
+  // convertorData = () => {
+  //   const { data } = this.props
+  //   const sclieLen = 10
+  //   const allPromise = []
+  //   let i = 0
+  //   while (i < data.length) {
+  //     const curArr = data.slice(i, i + sclieLen)
+  //     allPromise.push(this.convertor(curArr))
+  //     i += sclieLen
+  //   }
 
-    Promise.all(allPromise).then(data => {
-      const targetData = Array.prototype.concat.apply([], data)
-      this.createMapVLayer(targetData)
-    })
-  }
+  //   Promise.all(allPromise).then(data => {
+  //     const targetData = Array.prototype.concat.apply([], data)
+  //     this.createMapVLayer(targetData)
+  //   })
+  // }
 
-  createMapVLayer = data => {
+  createMapVLayer = (map) => {
     const { data: source } = this.props
-    console.log(source.length)
-    const dataSet = data.map((point, i) => ({
+    const dataSet = source.map((point, i) => ({
       geometry: {
         type: 'Point',
         coordinates: [point.lng, point.lat]
@@ -72,11 +74,13 @@ export default class QQMap extends React.Component {
     const max = Math.max(...source.map(item => item.cnt))
 
     const options = {
+      zIndex: 1,
+      position: map.getCenter(),
       fillStyle: 'rgba(55, 50, 250, 1)',
       shadowColor: 'rgba(255, 250, 50, 0.3)',
       shadowBlur: 20,
       size: 100,
-      unit: 'm',
+      // unit: 'm',
       globalAlpha: 0.6,
       label: {
           show: true,
@@ -91,22 +95,11 @@ export default class QQMap extends React.Component {
       draw: 'grid'
     }
 
-    const mapvLayer = new mapv.baiduMapLayer(this.map, new mapv.DataSet(dataSet), options)
+    const mapvLayer = new QMapVLayer(map, new DataSet(dataSet), options)
   }
 
-  convertor = source => {
-    if (source.length === 0) return 
-    const convertor = new BMap.Convertor()
-    const points = source.map(point => new BMap.Point(point.lng, point.lat))
-    return new Promise((resolve, reject) => {
-      convertor.translate(points, 3, 5, newData => {
-        if (newData.status === 0) resolve(newData.points)
-        reject(newData.status)
-      })
-    })
-  }
-
-  initMap = data => {
+  handleTilesloaded = map => {
+    this.createMapVLayer(map)
   }
 
   render() {
@@ -118,6 +111,10 @@ export default class QQMap extends React.Component {
             center={center}
             zoom={16}
             style={{height: '100%'}}
+            events={{
+              tilesloaded: this.handleTilesloaded
+            }}
+            style={{height: '100vh', width: '100%'}}
           >
             <Marker position={center}  />
           </QMap>

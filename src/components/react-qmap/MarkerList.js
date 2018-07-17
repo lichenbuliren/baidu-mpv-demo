@@ -28,13 +28,10 @@ export default class MarkerList extends React.Component {
     this.initialize()
   }
 
-  componentDidUpdate () {
-    this.initialize()
-  }
-
   initialize = () => {
     const { data, showDecoration, ...rest } = this.props
     this.clearMarkers()
+
     data.forEach((m, i) => {
       const decoration = showDecoration ? (m.decoration ? m.decoration : i) : null
       this.markers.push(new Marker({
@@ -50,7 +47,7 @@ export default class MarkerList extends React.Component {
 
   clearMarkers = () => {
     this.markers.forEach(marker => {
-      marker.setMap && marker.setMap(null)
+      marker.setMap(null)
     })
     this.markers = []
   }
