@@ -12,7 +12,11 @@ export default class App extends React.Component {
   }
   render () {
     const { center } = this.state
-    return <BaiduMap center={center} data={data} style={{ height: '100vh', width: '100vw' }} />
-    // return <QQMap center={center} data={data} />
+    return (
+      <React.Fragment>
+        <BaiduMap center={center} data={data} style={{ height: '50vh', width: '80vw', margin: '0 auto' }} />
+        <QQMap center={center} data={data} />
+      </React.Fragment>
+    )
   }
 }

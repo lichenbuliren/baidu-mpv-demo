@@ -35,7 +35,7 @@ class QQMap extends BaseComponent {
       'zoom_changed',
       'maptypeid_changed',
       'projection_changed',
-      'idle',
+      ['idle', true],
       'tilesloaded',
       'resize'
     ]
@@ -119,7 +119,7 @@ class QQMap extends BaseComponent {
   render () {
     const { style } = this.props
     return (
-      <div className='qmap-container' style={style}>
+      <div className='qmap-container' style={{width: '100%', height: '100%'}}>
         <div
           ref={node => (this.mapNode = node)}
           className={this.props.className}

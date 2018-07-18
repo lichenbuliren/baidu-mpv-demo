@@ -69,6 +69,7 @@ class BaseLayer {
     if (self.options.splitList === undefined) {
       self.category.generateByDataSet(this.dataSet, self.options.color);
     }
+    // 根据给定的颜色区间，获取对应数据所在的颜色区间
     if (self.options.splitList === undefined) {
       var min = self.options.min || this.dataSet.getMin('count');
       var max = self.options.max || this.dataSet.getMax('count');

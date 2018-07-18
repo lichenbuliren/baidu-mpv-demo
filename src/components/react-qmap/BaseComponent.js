@@ -11,9 +11,17 @@ export default class BaseComponent extends React.Component {
     const self = this
     if (events.length) {
       events.forEach(event => {
-        qq.maps.event.addListener(obj, event, mouseEvent => {
-          self.props.events && self.props.events[event] && self.props.events[event].call(self, obj, mouseEvent)
-        })
+        if (Object.prototype.toString.call(event) === '[object Array]' && event[1]) {
+          // 绑定一次事件
+          const eventName = event[0]
+          qq.maps.event.addListenerOnce(obj, eventName, mouseEvent => {
+            self.props.events && self.props.events[eventName] && self.props.events[eventName].call(self, obj, mouseEvent)
+          })
+        } else {
+          qq.maps.event.addListener(obj, event, mouseEvent => {
+            self.props.events && self.props.events[event] && self.props.events[event].call(self, obj, mouseEvent)
+          })
+        }
       })
     }
   }

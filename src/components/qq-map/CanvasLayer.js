@@ -1,92 +1,124 @@
 /* global qq */
 import { getMapSize } from './utils'
 
-function CanvasLayer(options) {
+function CanvasLayer(map, options) {
+  this.setMap(map);
   this.options = options || {};
   this.paneName = this.options.paneName || 'mapPane';
   this.context = this.options.context  || '2d';
-  this.zIndex = this.options.index || 0;
+  this.zIndex = this.options.zIndex || 0;
   this.mixBlendMode = this.options.mixBlendMode || null;
   this.enableMassClear = this.options.enableMassClear;
   this._lastDrawTime = null;
   this.position = options.position
-  if (options.map) {
-    this._map = options.map
-    this.setMap(options.map)
-  }
-  // this.show();
+  qq.maps.Overlay.call(this);
+  console.log('canvas layer init');
 }
 
 var global = typeof window === 'undefined' ? {} : window;
 
 if (global.qq) {
-
   CanvasLayer.prototype = new qq.maps.Overlay();
 
+  CanvasLayer.CSS_TRANSFORM = (function () {
+    var div = document.createElement('div');
+    var props = [
+        'transform',
+        'WebkitTransform',
+        'MozTransform',
+        'OTransform',
+        'msTransform'
+    ];
+
+    for (var i = 0; i < props.length; i++) {
+        var prop = props[i];
+        if (div.style[prop] !== undefined) {
+            return prop;
+        }
+    }
+
+    return props[0];
+  })();
+
   CanvasLayer.prototype.construct = function() {
+    console.log('canvas construct');
+    var mapSize = getMapSize(this.map);
     var canvas = this.canvas = document.createElement("canvas");
-    canvas.style.cssText = "position:absolute;" + "left:0;" + "top:0;" + "z-index:" + this.zIndex + ";user-select:none;pointer-events: none;border: 1px solid red";
-    canvas.style.mixBlendMode = this.mixBlendMode;
-    this.adjustSize();
-    var panes = this.getPanes()
-    panes.overlayMouseTarget.appendChild(canvas);
+    canvas.style.cssText = `width: ${mapSize.width}px; height: ${mapSize.height}px;border: 1px solid red;box-sizing: border-box;`;
+    this.getPanes().overlayLayer.appendChild(canvas);
     var that = this;
-    qq.maps.event.addListener(this.map, 'resize', function() {
-      that.adjustSize();
-      that._draw()
+    this.changeHandler = qq.maps.event.addListener(this.map, 'bounds_changed', function() {
+      console.log('bounds_changed')
+      that.draw();
     })
+    this.constructed = true;
     return this.canvas;
   }
 
-  CanvasLayer.prototype.adjustSize = function() {
-    var size = getMapSize(this.map);
-    var canvas = this.canvas;
-
-    var devicePixelRatio = this.devicePixelRatio = global.devicePixelRatio || 1;
-
-    canvas.width = size.width * devicePixelRatio;
-    canvas.height = size.height * devicePixelRatio;
-    if (this.context == '2d') {
-        canvas.getContext(this.context).scale(devicePixelRatio, devicePixelRatio);
-    }
-
-    canvas.style.width = size.width + "px";
-    canvas.style.height = size.height + "px";
-  }
-
   CanvasLayer.prototype.destory = function () {
-    this.canvas.parentNode.removeChild(this.canvas)
+    this.canvas.parentElement.removeChild(this.canvas)
+    if (this.changeHandler) {
+      qq.maps.event.removeListener(this.changeHandler)
+      this.changeHandler = null
+    }
     this.canvas = null
   }
 
   CanvasLayer.prototype.draw = function() {
     var self = this;
+    var overlayProjection = this.getProjection();
+    var bounds = this.map.getBounds()
+    var topLeft = new qq.maps.LatLng(
+      bounds.getNorthEast().getLat(),
+      bounds.getSouthWest().getLng()
+    )
+    var point = overlayProjection.fromLatLngToDivPixel(topLeft);
+    this.canvas.style[CanvasLayer.CSS_TRANSFORM] = `translate(${Math.round(point.x)}px, ${Math.round(point.y)}px)`
     clearTimeout(self.timeoutID);
     self.timeoutID = setTimeout(function() {
-      self._draw();
+      self.update();
     }, 15);
   }
 
-  CanvasLayer.prototype._draw = function() {
-    var overlayProjection = this.getProjection();
-    var size = getMapSize(this.map)
-    // 中心坐标点
-    var pixel = overlayProjection.fromLatLngToDivPixel(this.position);
-    this.canvas.style.left = pixel.x - size.width / 2 + 'px';
-    this.canvas.style.top = pixel.y - size.height / 2 + 'px';
-    // this.dispatchEvent('draw');
+  CanvasLayer.prototype.update = function() {
+    console.log('update render');
+    this.resize();
     this.options.update && this.options.update.call(this);
   }
+
+  CanvasLayer.prototype.resize = function() {
+    if (!this.map) return;
+    var size = getMapSize(this.map);
+    var width = size.width;
+    var height = size.height;
+    var canvas = this.canvas;
+
+    var devicePixelRatio = this.devicePixelRatio = global.devicePixelRatio || 1;
+
+    canvas.width = width * devicePixelRatio;
+    canvas.height = height * devicePixelRatio;
+
+    if (this.context == '2d') {
+        canvas.getContext(this.context).scale(devicePixelRatio, devicePixelRatio);
+    }
+
+    if (width == this.width && height == this.height) {
+      return;
+    }
+
+    this.width = width;
+    this.height = height;
+    canvas.style.width = width + "px";
+    canvas.style.height = height + "px";
+  }
+
 
   CanvasLayer.prototype.getContainer = function() {
       return this.canvas;
   }
 
   CanvasLayer.prototype.show = function() {
-    if (!this.canvas) {
-      this.setMap(this.map)
-    }
-    this.canvas.style.display = "block";
+    this.canvas.style.display = "";
   }
 
   CanvasLayer.prototype.hide = function() {
