@@ -38,13 +38,13 @@ export default class QQMap extends React.Component {
     const max = Math.max(...source.map(item => item.cnt))
 
     const options = {
-      zIndex: 1,
+      zIndex: 2,
       position: map.getCenter(),
       fillStyle: 'rgba(55, 50, 250, 1)',
       shadowColor: 'rgba(255, 250, 50, 0.3)',
       shadowBlur: 20,
-      size: 20,
-      // unit: 'm',
+      size: 100,
+      unit: 'm',
       globalAlpha: 0.6,
       label: {
           show: true,
@@ -71,9 +71,10 @@ export default class QQMap extends React.Component {
 
   render() {
     const { id, style, center, data } = this.props
+    // <MarkerList data={data} />
     return (
       <React.Fragment>
-        <div id={id} style={{height: '50vh', width: '80%', margin: '0 auto'}}>
+        <div id={id} style={style}>
           <QMap
             center={center}
             zoom={16}
@@ -81,8 +82,9 @@ export default class QQMap extends React.Component {
             events={{
               idle: this.handleTilesloaded
             }}
-            style={{height: '100vh', width: '100%'}}
+            style={{height: '100%', width: '100%'}}
           >
+            <Marker position={center} />
             <MarkerList data={data} />
           </QMap>
         </div>

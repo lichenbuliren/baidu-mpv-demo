@@ -12,13 +12,8 @@ class Layer extends BaseLayer {
 
     var self = this;
     options = options || {};
-    console.log('layer init')
-
-    // this.clickEvent = this.clickEvent.bind(this);
-    // this.mousemoveEvent = this.mousemoveEvent.bind(this);
     self.init(options);
     self.argCheck(options);
-    // self.transferToMercator();
     var canvasLayer = this.canvasLayer = new CanvasLayer(map, {
       position: map.getCenter(),
       context: this.context,
@@ -27,13 +22,12 @@ class Layer extends BaseLayer {
       enableMassClear: options.enableMassClear,
       zIndex: options.zIndex,
       update: function () {
+        // self.transferToMercator();
         self._canvasUpdate();
       }
     });
 
     dataSet.on('change', function () {
-      console.log('dataSet on change')
-      // self.transferToMercator();
       canvasLayer.draw();
     });
 
@@ -77,22 +71,33 @@ class Layer extends BaseLayer {
   // 经纬度左边转换为墨卡托坐标
   transferToMercator () {
     var projection = this.map.getProjection();
+    if (!projection) return;
     var layerProjection = this.canvasLayer.getProjection();
     var bounds = this.map.getBounds();
+    console.log(bounds);
     var topLeft = new qq.maps.LatLng(
       bounds.getNorthEast().getLat(),
       bounds.getSouthWest().getLng()
     )
+    var zoom = this.map.getZoom();
+    var scale = Math.pow(2, zoom);
     var layerOffset = layerProjection.fromLatLngToDivPixel(topLeft);
     console.log('transferToMercator');
+    // 过滤出在视野范围内的点
     var data = this.dataSet.get();
-    // 覆盖层
+    // data = data.filter(item => {
+    //   var coordinates = item.geometry.coordinates;
+    //   var latLng = new qq.maps.LatLng(coordinates[1], coordinates[0]);
+    //   var isInBounds = bounds.contains(latLng);
+    //   return isInBounds
+    // });
+    // 覆盖层，经纬度坐标转世界地图坐标
     data = this.dataSet.transferCoordinate(data, function (coordinates) {
       var latLng = new qq.maps.LatLng(coordinates[1], coordinates[0]);
       var point = projection.fromLatLngToPoint(latLng);
-      return [Math.round(point.x - layerOffset.x), Math.round(point.y - layerOffset.y)];
+      return [point.x, point.y];
     }, 'coordinates', 'coordinates_mercator');
-    console.log(data[0])
+    console.log(data);
     this.dataSet._set(data);
   }
 
@@ -100,47 +105,32 @@ class Layer extends BaseLayer {
     return this.canvasLayer.canvas.getContext(this.context);
   }
 
-  _canvasUpdate (time) {
-    var projection = this.map.getProjection();
+  _canvasUpdate () {
+    var map = this.map;
+    var projection = map.getProjection();
     if (!this.canvasLayer || !projection) {
       return;
     }
 
     var self = this;
-
-    var animationOptions = self.options.animation;
-    this.transferToMercator();
-    var map = this.map;
-    var bounds = this.map.getBounds();
+    
+    // var animationOptions = self.options.animation;
+    var bounds = map.getBounds();
     var topLeft = new qq.maps.LatLng(
       bounds.getNorthEast().getLat(),
       bounds.getSouthWest().getLng()
     );
     var zoom = map.getZoom();
-    var zoomUnit = Math.pow(2, zoom);
+    var zoomUnit = Math.pow(2, 18 - zoom);
     var layerProjection = this.canvasLayer.getProjection();
     var layerOffset = layerProjection.fromLatLngToDivPixel(topLeft);
-    var mcCenter = projection.fromLatLngToPoint(map.getCenter());
-    var nwMc = new qq.maps.Point(mcCenter.x - (getMapSize(map).width / 2) * zoomUnit, mcCenter.y + (getMapSize(map).height / 2) * zoomUnit); //左上角墨卡托坐标
-    console.log('nwMC', nwMc);
+    // var mcCenter = projection.fromLatLngToPoint(map.getCenter());
+    // console.log('mcCenter', mcCenter);
+    // var nwMc = new qq.maps.Point(mcCenter.x - (getMapSize(map).width / 2) * zoomUnit, mcCenter.y + (getMapSize(map).height / 2) * zoomUnit); //左上角墨卡托坐标
 
     var context = this.getContext();
 
-    if (self.isEnabledTime()) {
-      if (time === undefined) {
-        clear(context);
-        return;
-      }
-      if (this.context == '2d') {
-        context.save();
-        context.globalCompositeOperation = 'destination-out';
-        context.fillStyle = 'rgba(0, 0, 0, .1)';
-        context.fillRect(0, 0, context.canvas.width, context.canvas.height);
-        context.restore();
-      }
-    } else {
-      clear(context);
-    }
+    clear(context);
 
     if (this.context == '2d') {
       for (var key in self.options) {
@@ -159,31 +149,24 @@ class Layer extends BaseLayer {
       scale = this.canvasLayer.devicePixelRatio;
     }
     var dataGetOptions = {
-      fromColumn: 'coordinates_mercator',
+      fromColumn: 'coordinates',
+      filter: item => {
+        var coordinates = item.geometry.coordinates;
+        var latLng = new qq.maps.LatLng(coordinates[1], coordinates[0]);
+        var isInBounds = bounds.contains(latLng);
+        return isInBounds
+      },
       transferCoordinate: function (coordinate) {
-        var x = (coordinate[0] - nwMc.x) / zoomUnit * scale;
-        var y = (nwMc.y - coordinate[1]) / zoomUnit * scale;
-        return [x, y];
-      }
-    }
-
-    if (time !== undefined) {
-      dataGetOptions.filter = function (item) {
-        var trails = animationOptions.trails || 10;
-        if (time && item.time > (time - trails) && item.time < time) {
-          return true;
-        } else {
-          return false;
-        }
+        var pixel = layerProjection.fromLatLngToDivPixel(new qq.maps.LatLng(coordinate[1], coordinate[0]));
+        // var x = (coordinate[0] - nwMc.x) / zoomUnit * scale;
+        // var y = (nwMc.y - coordinate[1]) / zoomUnit * scale;
+        return [pixel.x, pixel.y];
       }
     }
 
     // get data from data set
     var data = self.dataSet.get(dataGetOptions);
-    this.processData(data);
-
-    var nwPixel = this.canvasLayer.getProjection().fromLatLngToDivPixel(new qq.maps.LatLng(0, 0));
-    console.log('qq nwPixel', nwPixel);
+    // this.processData(data);
     if (self.options.unit == 'm') {
       if (self.options.size) {
         self.options._size = self.options.size / zoomUnit;
@@ -199,9 +182,10 @@ class Layer extends BaseLayer {
       self.options._height = self.options.height;
       self.options._width = self.options.width;
     }
-
-    this.drawContext(context, data, self.options, nwPixel);
-    self.options.updateCallback && self.options.updateCallback(time);
+    this.drawContext(context, data, self.options, {
+      x: parseInt(layerOffset.x),
+      y: parseInt(layerOffset.y)
+    });
   }
 
   init (options) {

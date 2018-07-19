@@ -4,7 +4,7 @@ import DataSet from "../../data/DataSet";
 export default {
   draw: function (context, dataSet, options) {
     context.save();
-
+    console.log('grid draw');
     var data = dataSet instanceof DataSet ? dataSet.get() : dataSet;
 
     var grids = {};
@@ -28,11 +28,12 @@ export default {
       max: options.max || 100,
       gradient: options.gradient
     });
+
     for (var gridKey in grids) {
       gridKey = gridKey.split(",");
-
+      console.log(gridKey[0] * size + .5 + offset.x, (gridKey[1] * size + .5 + offset.y), size, size);
       context.beginPath();
-      context.rect(gridKey[0] * size + .5 + offset.x, gridKey[1] * size + .5 + offset.y, size, size);
+      context.rect(gridKey[0] * size + .5 + offset.x, (gridKey[1] * size + .5 + offset.y), size, size);
       context.fillStyle = intensity.getColor(grids[gridKey]);
       context.fill();
       if (options.strokeStyle && options.lineWidth) {

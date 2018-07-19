@@ -7,12 +7,10 @@ function CanvasLayer(map, options) {
   this.paneName = this.options.paneName || 'mapPane';
   this.context = this.options.context  || '2d';
   this.zIndex = this.options.zIndex || 0;
-  this.mixBlendMode = this.options.mixBlendMode || null;
   this.enableMassClear = this.options.enableMassClear;
   this._lastDrawTime = null;
   this.position = options.position
   qq.maps.Overlay.call(this);
-  console.log('canvas layer init');
 }
 
 var global = typeof window === 'undefined' ? {} : window;
@@ -41,18 +39,17 @@ if (global.qq) {
   })();
 
   CanvasLayer.prototype.construct = function() {
-    console.log('canvas construct');
     var mapSize = getMapSize(this.map);
     var canvas = this.canvas = document.createElement("canvas");
-    canvas.style.cssText = `width: ${mapSize.width}px; height: ${mapSize.height}px;border: 1px solid red;box-sizing: border-box;`;
+    canvas.style.cssText = `width: ${mapSize.width}px;height: ${mapSize.height}px;border: 1px solid red;box-sizing: border-box;position: relative; z-index: ${this.zIndex}`;
     this.getPanes().overlayLayer.appendChild(canvas);
     var that = this;
+    this.resize();
     this.changeHandler = qq.maps.event.addListener(this.map, 'bounds_changed', function() {
-      console.log('bounds_changed')
+      that.resize();
       that.draw();
     })
     this.constructed = true;
-    return this.canvas;
   }
 
   CanvasLayer.prototype.destory = function () {
@@ -66,14 +63,26 @@ if (global.qq) {
 
   CanvasLayer.prototype.draw = function() {
     var self = this;
-    var overlayProjection = this.getProjection();
-    var bounds = this.map.getBounds()
+    if (!this.map) {
+      return;
+    }
+
+    // 返回当前地图的视野范围
+    var bounds = this.map.getBounds();
+    // 地图视野范围内左上角坐标经纬度 LatLng
     var topLeft = new qq.maps.LatLng(
       bounds.getNorthEast().getLat(),
       bounds.getSouthWest().getLng()
-    )
-    var point = overlayProjection.fromLatLngToDivPixel(topLeft);
-    this.canvas.style[CanvasLayer.CSS_TRANSFORM] = `translate(${Math.round(point.x)}px, ${Math.round(point.y)}px)`
+    );
+
+    // 返回覆盖物容器的相对像素坐标或是经纬度坐标
+    var projection = this.getProjection();
+    // 左上角移动偏移量
+    var point = projection.fromLatLngToDivPixel(topLeft);
+
+    this.canvas.style[CanvasLayer.CSS_TRANSFORM] = 'translate(' +
+    Math.round(point.x) + 'px,' +
+    Math.round(point.y) + 'px)';
     clearTimeout(self.timeoutID);
     self.timeoutID = setTimeout(function() {
       self.update();
@@ -82,7 +91,7 @@ if (global.qq) {
 
   CanvasLayer.prototype.update = function() {
     console.log('update render');
-    this.resize();
+    // this.resize();
     this.options.update && this.options.update.call(this);
   }
 
@@ -97,7 +106,6 @@ if (global.qq) {
 
     canvas.width = width * devicePixelRatio;
     canvas.height = height * devicePixelRatio;
-
     if (this.context == '2d') {
         canvas.getContext(this.context).scale(devicePixelRatio, devicePixelRatio);
     }
@@ -106,8 +114,6 @@ if (global.qq) {
       return;
     }
 
-    this.width = width;
-    this.height = height;
     canvas.style.width = width + "px";
     canvas.style.height = height + "px";
   }
