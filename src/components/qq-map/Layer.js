@@ -121,9 +121,11 @@ class Layer extends BaseLayer {
       bounds.getSouthWest().getLng()
     );
     var zoom = map.getZoom();
-    var zoomUnit = Math.pow(2, 18 - zoom);
+    // 计算缩放级别
+    var zoomUnit = Math.pow(2, 17 - zoom);
     var layerProjection = this.canvasLayer.getProjection();
     var layerOffset = layerProjection.fromLatLngToDivPixel(topLeft);
+    console.log(layerOffset);
     // var mcCenter = projection.fromLatLngToPoint(map.getCenter());
     // console.log('mcCenter', mcCenter);
     // var nwMc = new qq.maps.Point(mcCenter.x - (getMapSize(map).width / 2) * zoomUnit, mcCenter.y + (getMapSize(map).height / 2) * zoomUnit); //左上角墨卡托坐标
@@ -148,6 +150,21 @@ class Layer extends BaseLayer {
     if (this.context != '2d') {
       scale = this.canvasLayer.devicePixelRatio;
     }
+
+    let scaleSize = self.options.size;
+    // get data from data set
+    
+    if (self.options.unit == 'm') {
+      if (self.options.size) {
+        self.options._size = self.options.size / zoomUnit;
+        console.log(self.options._size, self.options.size / zoomUnit);
+      }
+    } else {
+      self.options._size = self.options.size;
+      self.options._height = self.options.height;
+      self.options._width = self.options.width;
+    }
+
     var dataGetOptions = {
       fromColumn: 'coordinates',
       // filter: item => {
@@ -158,36 +175,20 @@ class Layer extends BaseLayer {
       // },
       transferCoordinate: function (coordinate) {
         var pixel = layerProjection.fromLatLngToDivPixel(new qq.maps.LatLng(coordinate[1], coordinate[0]));
+        // 这里偏移网格大小的一半
         // var x = (coordinate[0] - nwMc.x) / zoomUnit;
         // var y = (nwMc.y - coordinate[1]) / zoomUnit * scale;
-        return [pixel.x, pixel.y];
+        return [pixel.x - layerOffset.x.toFixed(5), pixel.y - layerOffset.y.toFixed(5)];
       }
     }
 
-    // get data from data set
     var data = self.dataSet.get(dataGetOptions);
-    // this.processData(data);
-    if (self.options.unit == 'm') {
-      const scaleSize = getGridWidthByZoom(zoom, self.options.size, 100);
-      console.log(scaleSize);
-      if (self.options.size) {
-        self.options._size = scaleSize;
-      }
-      // if (self.options.width) {
-      //   self.options._width = self.options.width / zoomUnit;
-      // }
-      // if (self.options.height) {
-      //   self.options._height = self.options.height / zoomUnit;
-      // }
-    } else {
-      self.options._size = self.options.size;
-      self.options._height = self.options.height;
-      self.options._width = self.options.width;
-    }
+
     this.drawContext(context, data, self.options, {
       x: parseInt(layerOffset.x),
       y: parseInt(layerOffset.y)
     });
+    
   }
 
   init (options) {

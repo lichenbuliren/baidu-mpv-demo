@@ -4,7 +4,6 @@ import DataSet from "../../data/DataSet";
 export default {
   draw: function (context, dataSet, options) {
     context.save();
-    console.log('grid draw');
     var data = dataSet instanceof DataSet ? dataSet.get() : dataSet;
 
     var grids = {};
@@ -17,7 +16,9 @@ export default {
     }
     for (var i = 0; i < data.length; i++) {
       var coordinates = data[i].geometry._coordinates || data[i].geometry.coordinates;
-      var gridKey = Math.floor((coordinates[0] - offset.x) / size) + "," + Math.floor((coordinates[1] - offset.y) / size);
+      var coordX = Math.floor(((coordinates[0] - offset.x) / size).toFixed(5))
+      var coordY = Math.floor(((coordinates[1] - offset.y) / size).toFixed(5))
+      var gridKey = coordX + "," + coordY;
       if (!grids[gridKey]) {
         grids[gridKey] = 0;
       }
