@@ -78,6 +78,7 @@ export default class QQMap extends React.Component {
           <QMap
             center={center}
             zoom={16}
+            minZoom={14}
             style={{height: '100%'}}
             events={{
               idle: this.handleTilesloaded
@@ -85,7 +86,6 @@ export default class QQMap extends React.Component {
             style={{height: '100%', width: '100%'}}
           >
             <Marker position={center} />
-            <MarkerList data={data} />
           </QMap>
         </div>
       </React.Fragment>

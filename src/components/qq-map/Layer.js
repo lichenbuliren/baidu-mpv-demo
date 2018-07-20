@@ -1,7 +1,7 @@
 import BaseLayer from "./BaseLayer";
 import CanvasLayer from "./CanvasLayer";
 import clear from "./canvas/clear";
-import { getMapSize } from './utils'
+import { getMapSize, getGridWidthByZoom } from './utils'
 import Pixel from './Pixel'
 
 class Layer extends BaseLayer {
@@ -144,21 +144,21 @@ class Layer extends BaseLayer {
       return;
     }
 
-    var scale = 1;
+    var scale = this.canvasLayer.devicePixelRatio || 1;
     if (this.context != '2d') {
       scale = this.canvasLayer.devicePixelRatio;
     }
     var dataGetOptions = {
       fromColumn: 'coordinates',
-      filter: item => {
-        var coordinates = item.geometry.coordinates;
-        var latLng = new qq.maps.LatLng(coordinates[1], coordinates[0]);
-        var isInBounds = bounds.contains(latLng);
-        return isInBounds
-      },
+      // filter: item => {
+      //   var coordinates = item.geometry.coordinates;
+      //   var latLng = new qq.maps.LatLng(coordinates[1], coordinates[0]);
+      //   var isInBounds = bounds.contains(latLng);
+      //   return isInBounds
+      // },
       transferCoordinate: function (coordinate) {
         var pixel = layerProjection.fromLatLngToDivPixel(new qq.maps.LatLng(coordinate[1], coordinate[0]));
-        // var x = (coordinate[0] - nwMc.x) / zoomUnit * scale;
+        // var x = (coordinate[0] - nwMc.x) / zoomUnit;
         // var y = (nwMc.y - coordinate[1]) / zoomUnit * scale;
         return [pixel.x, pixel.y];
       }
@@ -168,15 +168,17 @@ class Layer extends BaseLayer {
     var data = self.dataSet.get(dataGetOptions);
     // this.processData(data);
     if (self.options.unit == 'm') {
+      const scaleSize = getGridWidthByZoom(zoom, self.options.size, 100);
+      console.log(scaleSize);
       if (self.options.size) {
-        self.options._size = self.options.size / zoomUnit;
+        self.options._size = scaleSize;
       }
-      if (self.options.width) {
-        self.options._width = self.options.width / zoomUnit;
-      }
-      if (self.options.height) {
-        self.options._height = self.options.height / zoomUnit;
-      }
+      // if (self.options.width) {
+      //   self.options._width = self.options.width / zoomUnit;
+      // }
+      // if (self.options.height) {
+      //   self.options._height = self.options.height / zoomUnit;
+      // }
     } else {
       self.options._size = self.options.size;
       self.options._height = self.options.height;

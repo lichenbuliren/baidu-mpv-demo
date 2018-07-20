@@ -46,6 +46,7 @@ if (global.qq) {
     var that = this;
     this.resize();
     this.changeHandler = qq.maps.event.addListener(this.map, 'bounds_changed', function() {
+      console.log(that.map.getZoom());
       that.resize();
       that.draw();
     })

@@ -15,8 +15,7 @@ export default class App extends React.Component {
     // <BaiduMap center={center} data={data} style={{ height: '50vh', width: '80vw', margin: '0 auto' }} />
     return (
       <React.Fragment>
-        <BaiduMap center={center} data={data} style={{ height: '50vh', width: '80vw', margin: '0 auto' }} />
-        <QQMap center={center} data={data} style={{height: '50vh', width: '80%', margin: '0 auto'}} />
+        <QQMap center={center} data={data} style={{height: '80vh', width: '80%', margin: '0 auto'}} />
       </React.Fragment>
     )
   }

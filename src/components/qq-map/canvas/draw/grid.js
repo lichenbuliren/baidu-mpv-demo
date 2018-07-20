@@ -31,7 +31,6 @@ export default {
 
     for (var gridKey in grids) {
       gridKey = gridKey.split(",");
-      console.log(gridKey[0] * size + .5 + offset.x, (gridKey[1] * size + .5 + offset.y), size, size);
       context.beginPath();
       context.rect(gridKey[0] * size + .5 + offset.x, (gridKey[1] * size + .5 + offset.y), size, size);
       context.fillStyle = intensity.getColor(grids[gridKey]);
