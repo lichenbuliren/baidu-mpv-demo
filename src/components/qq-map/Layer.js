@@ -1,8 +1,6 @@
 import BaseLayer from "./BaseLayer";
 import CanvasLayer from "./CanvasLayer";
 import clear from "./canvas/clear";
-import { getMapSize, getGridWidthByZoom } from './utils'
-import Pixel from './Pixel'
 
 class Layer extends BaseLayer {
 
