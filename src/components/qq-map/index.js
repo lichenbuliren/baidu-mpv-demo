@@ -1,5 +1,5 @@
 import React from 'react'
-import { QMap, Marker, MarkerList } from '../react-qmap'
+import { QMap, Marker, MarkerList } from 'qmap'
 import QMapVLayer from './Layer'
 import DataSet from './data/DataSet'
 

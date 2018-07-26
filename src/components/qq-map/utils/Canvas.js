@@ -1,14 +1,7 @@
 
-function Canvas(width, height) {
-
-    var canvas;
-
-    if (typeof document === 'undefined') {
-
-        // var Canvas = require('canvas');
-        // canvas = new Canvas(width, height);
-
-    } else {
+export default class Canvas {
+    constructor (width, height) {
+        var canvas;
 
         var canvas= document.createElement('canvas');
 
@@ -19,10 +12,6 @@ function Canvas(width, height) {
         if (height) {
             canvas.height = height;
         }
-
+        return canvas;
     }
-
-    return canvas;
 }
-
-export default Canvas;
